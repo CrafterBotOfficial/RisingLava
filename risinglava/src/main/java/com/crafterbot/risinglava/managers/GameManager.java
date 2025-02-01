@@ -40,13 +40,14 @@ public class GameManager implements Listener {
     public GameState state = GameState.READY;
 
     public ArrayList<Player> participants;
-    private LavaManager lavaManager;
+    public LavaManager lavaManager;
 
     public GameManager(Plugin mPlugin, Server mServer) {
         plugin = mPlugin;
         server = mServer;
         pluginManager = server.getPluginManager();
 
+        new ProgressBarManager(mServer, this, pluginManager);
         pluginManager.registerEvents(this, plugin);
     }
 
@@ -78,8 +79,9 @@ public class GameManager implements Listener {
 
             if (participants.size() == 0) {
                 
-                // Bukkit.broadcast(Component.text("Game over"));
+                server.sendMessage(Component.text("Game over"));
                 cleanup(this);
+                ProgressBarManager.cleanup();
                 state = GameState.READY;
                 
             } else {
@@ -118,7 +120,7 @@ public class GameManager implements Listener {
     private void onPlayerLeft(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         if (state != GameState.GAME_ON || !participants.contains(player)) return;
-        // Bukkit.broadcast(Component.text(String.format("s% has been eliminated", player.getName())));
+        server.sendMessage(Component.text(String.format("%s has been eliminated", player.displayName())));
         participants.remove(player);
         checkGameState();
     }
@@ -128,7 +130,7 @@ public class GameManager implements Listener {
         Player player = event.getPlayer();
         if (!participants.contains(player)) return;
         
-        // Bukkit.broadcast(Component.text(String.format("s% has been eliminated", player.getName())));
+        server.sendMessage(Component.text(String.format("%s has been eliminated", player.displayName())));
         participants.remove(player);
         checkGameState();
     } 

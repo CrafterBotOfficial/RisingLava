@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.crafterbot.risinglava.managers.GameManager;
 import com.crafterbot.risinglava.managers.LavaManager;
+import com.crafterbot.risinglava.managers.ProgressBarManager;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -39,5 +40,6 @@ public class Plugin extends JavaPlugin
   public void onDisable() {
     LOGGER.info("risinglava disabled");
     GameManager.cleanup(gameManager);
+    ProgressBarManager.cleanup();
   }
 }

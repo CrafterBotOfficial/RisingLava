@@ -15,10 +15,13 @@ import org.bukkit.scheduler.BukkitTask;
 
 import com.crafterbot.risinglava.GameState;
 import com.crafterbot.risinglava.Plugin;
+import com.crafterbot.risinglava.events.RaiseLavaEvent;
 
 import net.kyori.adventure.text.Component;
 
 public class LavaManager implements Listener {
+    public static final int MaxHeight = 320;
+
     private GameManager gameManager;
     private Server server;
     private BukkitScheduler scheduler;
@@ -27,13 +30,15 @@ public class LavaManager implements Listener {
 
     public World gameWorld;
     public int lavaHeight = -65;
+    public int startHeight;
 
-    public LavaManager(GameManager mGameManager, Server mServer, World mGameWorld, int startHeight) {
+    public LavaManager(GameManager mGameManager, Server mServer, World mGameWorld, int mStartHeight) {
         gameManager = mGameManager;
         server = mServer;
         gameWorld = mGameWorld;
         scheduler = Bukkit.getScheduler();
 
+        startHeight = mStartHeight;
         lavaHeight = startHeight;
         raiseLavaTask = scheduler.runTaskTimer(Plugin.Instance, () -> raiseLava(), 0L, 20 * 5);
     }
@@ -45,8 +50,7 @@ public class LavaManager implements Listener {
             return; 
         }
         lavaHeight++;
-        server.sendMessage(Component.text(String.format("Raising lava. Layer: %s", lavaHeight)));
-
+        
         for (Chunk chunk : gameWorld.getLoadedChunks()) {
             scheduler.runTaskLater(Plugin.Instance, () -> {
                 int x = chunk.getX() * 16;
@@ -55,6 +59,8 @@ public class LavaManager implements Listener {
                          x + 15, lavaHeight, z + 15);
             }, (int)(Math.random() * 100));
         }
+
+        new RaiseLavaEvent(lavaHeight).callEvent();
     }
 
     @EventHandler
