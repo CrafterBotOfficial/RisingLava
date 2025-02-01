@@ -6,9 +6,12 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scheduler.BukkitTask;
 
 import com.crafterbot.risinglava.GameState;
 import com.crafterbot.risinglava.Plugin;
@@ -18,22 +21,29 @@ import net.kyori.adventure.text.Component;
 public class LavaManager implements Listener {
     private GameManager gameManager;
     private Server server;
-    private World gameWorld;
     private BukkitScheduler scheduler;
-    
+
+    private BukkitTask raiseLavaTask;
+
+    public World gameWorld;
     public int lavaHeight = -65;
 
-    public LavaManager(GameManager mGameManager, Server mServer, World mGameWorld) {
+    public LavaManager(GameManager mGameManager, Server mServer, World mGameWorld, int startHeight) {
         gameManager = mGameManager;
         server = mServer;
         gameWorld = mGameWorld;
         scheduler = Bukkit.getScheduler();
 
-        scheduler.runTaskTimer(Plugin.Instance, () -> raiseLava(), 0L, 20 * 5);
+        lavaHeight = startHeight;
+        raiseLavaTask = scheduler.runTaskTimer(Plugin.Instance, () -> raiseLava(), 0L, 20 * 5);
     }
 
     private void raiseLava() {
-        if (gameManager.state != GameState.GAME_ON) return; 
+        if (gameManager.state != GameState.GAME_ON) { 
+            raiseLavaTask.cancel();
+            raiseLavaTask = null;
+            return; 
+        }
         lavaHeight++;
         server.sendMessage(Component.text(String.format("Raising lava. Layer: %s", lavaHeight)));
 
@@ -45,6 +55,12 @@ public class LavaManager implements Listener {
                          x + 15, lavaHeight, z + 15);
             }, (int)(Math.random() * 100));
         }
+    }
+
+    @EventHandler
+    private void onLoadChunk(ChunkLoadEvent event) {
+        if (event.getWorld() != gameWorld) return;
+        // todo: fill lava
     }
 
     // todo: do not send packets for every block changed, instead for every chunk changed. tmp code
